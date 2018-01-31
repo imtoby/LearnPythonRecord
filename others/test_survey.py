@@ -4,7 +4,7 @@
 
 import unittest
 
-from survey import AnonymousSurvey
+from others.survey import AnonymousSurvey
 
 
 class TestAnonymousSurvey(unittest.TestCase):

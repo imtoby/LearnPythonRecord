@@ -4,7 +4,7 @@
 
 import unittest
 
-from name_function import get_formatted_name
+from others.name_function import get_formatted_name
 
 
 class NameTestCase(unittest.TestCase):
