@@ -5,8 +5,8 @@
 import sys
 import pygame
 
-from alien import Alien
-from bullet import Bullet
+from AlienInvasion.alien import Alien
+from AlienInvasion.bullet import Bullet
 
 
 def fire_bullet(ai_settings, screen, ship, bullets):

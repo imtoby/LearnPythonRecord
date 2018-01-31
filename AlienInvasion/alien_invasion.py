@@ -6,11 +6,10 @@ import pygame
 
 from pygame.sprite import Group
 
-from alien import Alien
-from settings import Settings
-from ship import Ship
+from AlienInvasion.settings import Settings
+from AlienInvasion.ship import Ship
 
-import game_functions as game_functions
+import AlienInvasion.game_functions as game_functions
 
 
 def run_game():
