@@ -4,9 +4,13 @@
 
 import pygame
 
+from pygame.sprite import Sprite
 
-class Ship:
+
+class Ship(Sprite):
     def __init__(self, ai_settings, screen):
+        """ 初始化飞船,并设置其起始位置 """
+        super(Ship, self).__init__()
         self.screen = screen
         self.ai_settings = ai_settings
         self.image = pygame.image.load("images/ship.bmp")
@@ -31,4 +35,8 @@ class Ship:
 
     def blitme(self):
         self.screen.blit(self.image, self.rect)
+
+    def center_ship(self):
+        """ 让飞船在屏幕上居中 """
+        self.center = float(self.screen_rect.centerx)  # 影响 self.rect.centerx
 

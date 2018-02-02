@@ -5,6 +5,8 @@
 import sys
 import pygame
 
+from time import sleep
+
 from AlienInvasion.alien import Alien
 from AlienInvasion.bullet import Bullet
 
@@ -37,7 +39,8 @@ def check_key_up_events(event, ship):
         ship.moving_left = False
 
 
-def check_events(ai_settings, screen, ship, bullets):
+def check_events(ai_settings, screen, stats, scoreboard, play_button, ship,
+                 aliens, bullets):
     """ 响应按键和鼠标事件 """
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -46,9 +49,15 @@ def check_events(ai_settings, screen, ship, bullets):
             check_key_down_events(event, ai_settings, screen, ship, bullets)
         elif event.type == pygame.KEYUP:
             check_key_up_events(event, ship)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            check_play_button(ai_settings, screen, stats, scoreboard,
+                              play_button, ship,
+                              aliens, bullets, mouse_x, mouse_y)
 
 
-def update_screen(ai_settings, screen, ship, aliens, bullets):
+def update_screen(ai_settings, screen, stats, scoreboard,
+                  ship, aliens, bullets, play_button):
     """ 更新屏幕上的图像,并切换到新屏幕 """
     # 每次循环时都重绘屏幕
     screen.fill(ai_settings.background_color)
@@ -56,10 +65,17 @@ def update_screen(ai_settings, screen, ship, aliens, bullets):
         bullet.draw_bullet()
     ship.blitme()
     aliens.draw(screen)
+    # 显示得分
+    scoreboard.show_score()
+    # 如果游戏处于非活动状态,就绘制 Play 按钮
+    if not stats.game_active:
+        play_button.draw_button()
+    # 让最近绘制的屏幕可见
     pygame.display.flip()
 
 
-def update_bullets(ai_settings, screen, ship, aliens, bullets):
+def update_bullets(ai_settings, screen, stats,
+                   scoreboard, ship, aliens, bullets):
     """ 更新子弹的位置,并删除已消失的子弹 """
     # 更新子弹的位置
     bullets.update()
@@ -68,19 +84,37 @@ def update_bullets(ai_settings, screen, ship, aliens, bullets):
         if bullet.rect.bottom <= 0:
             bullets.remove(bullet)
 
-    check_bullet_alien_collisions(ai_settings, screen, ship, aliens, bullets)
+    check_bullet_alien_collisions(ai_settings, screen, stats,
+                                  scoreboard, ship, aliens, bullets)
 
 
-def check_bullet_alien_collisions(ai_settings, screen, ship, aliens, bullets):
+def check_bullet_alien_collisions(ai_settings, screen, stats,
+                                  scoreboard, ship, aliens, bullets):
     # 检查是否有子弹击中了外星人
     # 如果是这样,就删除相应的子弹和外星人
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
 
+    if collisions:
+        for aliens in collisions.values():
+            stats.score += ai_settings.alien_points * len(aliens)
+            scoreboard.prep_score()
+        check_high_score(stats, scoreboard)
+
     if len(aliens) == 0:
         # 删除现有的子弹并新建一群外星人
         bullets.empty()
+        ai_settings.increase_speed()
+        # 提高等级
+        stats.level += 1
+        scoreboard.prep_level()
         create_fleet(ai_settings, screen, ship, aliens)
 
+
+def check_high_score(stats, scoreboard):
+    """ 检查是否诞生了新的最高得分 """
+    if stats.score > stats.high_score:
+        stats.high_score = stats.score
+        scoreboard.prep_high_score()
 
 
 def get_number_aliens_x(ai_settings, alien_width):
@@ -123,13 +157,20 @@ def get_number_rows(ai_settings, ship_height, alien_height):
     return number_rows
 
 
-def update_aliens(ai_settings, aliens):
-    """
-    检查是否有外星人位于屏幕边缘,并更新整群外星人的位置
-    """
+def update_aliens(ai_settings, stats, scoreboard,
+                  screen, ship, aliens, bullets):
+    """ 检查是否有外星人位于屏幕边缘,并更新整群外星人的位置 """
     check_fleet_edges(ai_settings, aliens)
     """ 更新外星人群中所有外星人的位置 """
     aliens.update()
+
+    # 检测外星人和飞船之间的碰撞
+    if pygame.sprite.spritecollideany(ship, aliens):
+        ship_hit(ai_settings, stats, scoreboard, screen, ship, aliens, bullets)
+
+    # 检查是否有外星人到达屏幕底端
+    check_aliens_bottom(ai_settings, stats, scoreboard,
+                        screen, ship, aliens, bullets)
 
 
 def check_fleet_edges(ai_settings, aliens):
@@ -144,3 +185,65 @@ def change_fleet_direction(ai_settings, aliens):
     for alien in aliens.sprites():
         alien.rect.y += ai_settings.fleet_drop_speed
     ai_settings.fleet_direction *= -1
+
+
+def ship_hit(ai_settings, stats, scoreboard, screen, ship, aliens, bullets):
+    """ 响应被外星人撞到的飞船 """
+    if stats.ships_left > 0:
+        # 将 ships_left 减 1
+        stats.ships_left -= 1
+        scoreboard.prep_ships()
+        # 清空外星人列表和子弹列表
+        aliens.empty()
+        bullets.empty()
+        # 创建一群新的外星人,并将飞船放到屏幕底端中央
+        create_fleet(ai_settings, screen, ship, aliens)
+        ship.center_ship()
+        # 暂停
+        sleep(0.5)
+    else:
+        game_over(stats)
+
+
+def check_aliens_bottom(ai_settings, stats, scoreboard,
+                        screen, ship, aliens, bullets):
+    """ 检查是否有外星人到达了屏幕底端 """
+    screen_rect = screen.get_rect()
+    for alien in aliens.sprites():
+        if alien.rect.bottom >= screen_rect.bottom:
+            # 像飞船被撞到一样进行处理
+            ship_hit(ai_settings, stats, scoreboard,
+                     screen, ship, aliens, bullets)
+            break
+
+
+def check_play_button(ai_settings, screen, stats, scoreboard,
+                      play_button, ship, aliens,
+                      bullets, mouse_x, mouse_y):
+    """ 在玩家单击 Play 按钮时开始新游戏 """
+    button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
+    if button_clicked and not stats.game_active:
+        # 重置游戏设置
+        ai_settings.initialize_dynamic_settings()
+        # 隐藏鼠标光标
+        pygame.mouse.set_visible(False)
+        # 重置游戏统计信息
+        stats.reset_stats()
+        stats.game_active = True
+        # 重置记分牌图像
+        scoreboard.prep_score()
+        scoreboard.prep_high_score()
+        scoreboard.prep_level()
+        scoreboard.prep_ships()
+        # 清空外星人列表和子弹列表
+        aliens.empty()
+        bullets.empty()
+        # 创建一群新的外星人,并让飞船居中
+        create_fleet(ai_settings, screen, ship, aliens)
+        ship.center_ship()
+
+
+def game_over(stats):
+    stats.game_active = False
+    pygame.mouse.set_visible(True)
+
