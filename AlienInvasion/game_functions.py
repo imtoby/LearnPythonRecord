@@ -223,27 +223,34 @@ def check_play_button(ai_settings, screen, stats, scoreboard,
     """ 在玩家单击 Play 按钮时开始新游戏 """
     button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
     if button_clicked and not stats.game_active:
-        # 重置游戏设置
-        ai_settings.initialize_dynamic_settings()
-        # 隐藏鼠标光标
-        pygame.mouse.set_visible(False)
-        # 重置游戏统计信息
-        stats.reset_stats()
-        stats.game_active = True
-        # 重置记分牌图像
-        scoreboard.prep_score()
-        scoreboard.prep_high_score()
-        scoreboard.prep_level()
-        scoreboard.prep_ships()
-        # 清空外星人列表和子弹列表
-        aliens.empty()
-        bullets.empty()
-        # 创建一群新的外星人,并让飞船居中
-        create_fleet(ai_settings, screen, ship, aliens)
-        ship.center_ship()
+        start_game(ai_settings, screen, stats, scoreboard, ship, aliens,
+                   bullets)
+
+
+def start_game(ai_settings, screen, stats, scoreboard, ship, aliens, bullets):
+    """ 开始游戏 """
+    # 重置游戏设置
+    ai_settings.initialize_dynamic_settings()
+    # 隐藏鼠标光标
+    pygame.mouse.set_visible(False)
+    # 重置游戏统计信息
+    stats.reset_stats()
+    stats.game_active = True
+    # 重置记分牌图像
+    scoreboard.prep_score()
+    scoreboard.prep_high_score()
+    scoreboard.prep_level()
+    scoreboard.prep_ships()
+    # 清空外星人列表和子弹列表
+    aliens.empty()
+    bullets.empty()
+    # 创建一群新的外星人,并让飞船居中
+    create_fleet(ai_settings, screen, ship, aliens)
+    ship.center_ship()
 
 
 def game_over(stats):
+    """ 结束游戏 """
     stats.game_active = False
     pygame.mouse.set_visible(True)
 
