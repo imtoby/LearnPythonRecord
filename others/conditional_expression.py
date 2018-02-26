@@ -26,4 +26,20 @@ def factorial_conditional(n):
     return 1 if n == 0 else n * factorial(n - 1)
 
 
+def capitalize_all(t):
+    # res = []
+    # for s in t:
+    #     res.append(s.capitalize())
+    # return res
+    return [s.capitalize() for s in t]
+
+
+def only_upper(t):
+    # res = []
+    # for s in t:
+    #     if s.isupper():
+    #         res.append(s)
+    # return res
+    return [s for s in t if s.isupper()]
+
 
