@@ -43,3 +43,33 @@ def only_upper(t):
     return [s for s in t if s.isupper()]
 
 
+def avoids(word, forbidden):
+    return not any(letter in forbidden for letter in word)
+
+
+def substract(d1, d2):
+    # res = dict()
+    # for key in d1:
+    #     if key not in d2:
+    #         res[key] = None
+    # return res
+    return set(d1) - set(d2)
+
+
+def has_duplicates(t):
+    # d = {}
+    # for x in t:
+    #     if x in d:
+    #         return True
+    #     d[x] = True
+    # return False
+    return len(set(t)) < len(t)
+
+
+def uses_only(word, available):
+    # for letter in word:
+    #     if letter not in available:
+    #         return False
+    # return True
+    return set(word) <= set(available)
+
