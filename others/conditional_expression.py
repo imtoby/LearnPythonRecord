@@ -73,3 +73,41 @@ def uses_only(word, available):
     # return True
     return set(word) <= set(available)
 
+
+# def all_anagrams(filename):
+#     # d = {}
+#     # for line in open(filename):
+#     #     word = line.strip().lower()
+#     #     t = signature(word)
+#     #     # if t not in d:
+#     #     #     d[t] = [word]
+#     #     # else:
+#     #     #     d[t].append(word)
+#     #     d.setdefault(t, []).append(word)
+#     # return d
+#     d = defaultdict(list)
+#     for line in open(filename):
+#         word = line.strip().lower()
+#         t = signature(word)
+#         d[t].append(word)
+#     return d
+
+
+class Point:
+    def __init__(self, x=0, y=0):
+        self.x = x
+        self.y = y
+
+    def __str__(self,):
+        return '(%g, %g)' % (self.x, self.y)
+
+
+# class Pointier(Point):
+#     #  在这里添加更多的方法
+
+
+def print_all(*args, **kwargs):
+    print(args, kwargs)
+
+
+print_all(1, 2.0, '3')
